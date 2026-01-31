@@ -1,0 +1,47 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Customer {
+  - id: String
+  - name: String
+  + Customer(id: String, name: String)
+  + id(): String
+  + name(): String
+  + equals(o: Object): boolean
+  + hashCode(): int
+  + toString(): String
+}
+
+class Account {
+  - accountNumber: String
+  - owner: Customer
+  - balance: BigDecimal
+  + Account(accountNumber: String, owner: Customer)
+  + accountNumber(): String
+  + owner(): Customer
+  + balance(): BigDecimal
+  + deposit(amount: BigDecimal): void
+  + withdraw(amount: BigDecimal): void
+  - normalizeAmount(amount: BigDecimal): BigDecimal
+  + toString(): String
+}
+
+class AccountService {
+  - accounts: Map<String, Account>
+  + createAccount(accountNumber: String, owner: Customer): Account
+  + findAccount(accountNumber: String): Account
+  + deposit(accountNumber: String, amount: BigDecimal): void
+  + withdraw(accountNumber: String, amount: BigDecimal): void
+}
+
+class Main {
+  + main(args: String[]): void
+}
+
+Account *-- Customer : owner
+AccountService o-- Account : manages
+Main ..> AccountService : uses
+Main ..> Customer : creates
+Main ..> Account : reads
+
+@enduml
