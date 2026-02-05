@@ -1,6 +1,8 @@
 package com.paulomiotto.banking;
 
 import com.paulomiotto.banking.exception.AccountNotFoundException;
+import com.paulomiotto.banking.exception.DuplicateAccountException;
+import com.paulomiotto.banking.exception.SameAccountTransferException;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -25,9 +27,11 @@ public class AccountService { //ela representa a camada de serviço (service lay
        P.S. Se o "if" termina o metodo (return, throw, break), você NÃO precisa de "else".
      */
     //“createAccount é um metodo público que retorna um objeto do tipo Account.”
+    // ✅ Metodo oficial: abrir conta
     public Account createAccount(String accountNumber, Customer owner) { //Regra de negócio: não pode existir duas contas com o mesmo número.
         if (accounts.containsKey(accountNumber)) {                       //containsKey verifica rapidamente se a chave já existe no Map.
-            throw new IllegalArgumentException("Account already exists");//Lança IllegalArgumentException porque o “pedido” para criar é inválido (duplicado).
+            //throw new IllegalArgumentException("Account already exists with account number: " + accountNumber);//Lança IllegalArgumentException porque o “pedido” para criar é inválido (duplicado).
+            throw new DuplicateAccountException(accountNumber);
         }
 
         //Cria o objeto Account
@@ -36,34 +40,39 @@ public class AccountService { //ela representa a camada de serviço (service lay
         return account;                                      //Retorna a conta criada, útil para imprimir, consultar saldo etc.
     }
 
-    //Metodo: buscar conta
-    public Account findAccount(String accountNumber) { //Metodo público para encontrar uma conta pelo número
-        Account account = accounts.get(accountNumber); //Busca a conta no mapa
-        if (account == null) {                         //Se existir, retorna o objeto Account.
-            throw new IllegalArgumentException("Account not found"); //Se não existir, get retorna null.
-        }
-        return account;
+    // ✅ Metodo oficial: consultar conta (opcional, mas útil)
+    public Account getAccount(String accountNumber) {
+        return getAccountOrThrow(accountNumber);
     }
 
-    //Metodo: depósito
+    // ✅ Oficial: depósito (use case)
     public void deposit(String accountNumber, BigDecimal amount) { //Metodo público para depositar em uma conta específica. Não retorna nada (void) porque o efeito está no estado da conta.
-        Account account = findAccount(accountNumber); //Reusa a lógica de busca e validação. Se a conta não existir, findAccount lança exceção e o depósito não continua.
+        Account account = getAccountOrThrow(accountNumber);
         account.deposit(amount); //Delegação: o AccountService não mexe no saldo diretamente. Quem decide como depositar e validar valores é a classe Account. Isso é bom design: cada classe com sua responsabilidade.
     }
 
-    //Metodo: saque
+    // ✅ Oficial: saque (use case)
     public void withdraw(String accountNumber, BigDecimal amount) { //Metodo público para sacar.
-        Account account = findAccount(accountNumber); //Busca a conta e garante que ela existe
+        Account account = getAccountOrThrow(accountNumber);
         account.withdraw(amount); //Delegação: Account faz validações (valor > 0, saldo suficiente etc.). Se não tiver saldo, Account.withdraw lança IllegalStateException("Insufficient funds").
     }
 
-    //Metodo: transfer
-    public void transfer(String fromAccountNumber,
+    // ✅ Oficial: transferir (use case)
+    public void transferBetweenAccounts(
+            String fromAccountNumber,
+            String toAccountNumber,
+            BigDecimal amount) {
+        transfer(fromAccountNumber, toAccountNumber, amount);
+    }
+
+    // 🔒 Interno: implementação da transferência
+    private void transfer(String fromAccountNumber,
                          String toAccountNumber,
                          BigDecimal amount) {
 
         if (fromAccountNumber.equals(toAccountNumber)) {
-            throw new IllegalArgumentException("Cannot transfer to the same account");
+            //throw new IllegalArgumentException("Cannot transfer to the same account");
+            throw new SameAccountTransferException();
         }
 
         /* //Bloco substituido pelo metodo getAccountOrThrow para validar se as contas existem.
@@ -78,12 +87,14 @@ public class AccountService { //ela representa a camada de serviço (service lay
         Account from = getAccountOrThrow(fromAccountNumber);
         Account to = getAccountOrThrow(toAccountNumber);
 
+        // Regra de domínio fica no Account (validação e alteração de saldo)
         from.withdraw(amount);
         to.deposit(amount);
 
     }
 
     //Pequena melhoria que eu faria (opcional): metodo auxiliar “getOrThrow”
+    // 🔒 Interno: só o service sabe como buscar e falhar corretamente
     private Account getAccountOrThrow(String accountNumber) {
         Account account = accounts.get(accountNumber);
         if (account == null) {
@@ -91,6 +102,7 @@ public class AccountService { //ela representa a camada de serviço (service lay
         }
         return account;
     }
+
 
 }
 

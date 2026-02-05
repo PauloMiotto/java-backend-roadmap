@@ -26,7 +26,7 @@ public class Customer { //Declara que a classe é pública (qualquer outro códi
     }                      //Aqui você “congela” os valores nos campos final
 
     public String id() { //Metodo “getter” para o id.
-        return id;       //Em vez de getId(), usei id() (estilo moderno; bem comum com records).
+        return  id;       //Em vez de getId(), usei id() (estilo moderno; bem comum com records).
     }                    //Como o campo é private, esse metodo é o jeito controlado de ler o valor.
 
     public String name() {

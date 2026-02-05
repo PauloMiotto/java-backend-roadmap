@@ -19,11 +19,14 @@ public class Main {
 
         a1.deposit(new BigDecimal("20000"));
 
-        service.transfer("ACC-1", "ACC-2", new BigDecimal("40"));
+        service.transferBetweenAccounts("ACC-1", "ACC-2", new BigDecimal("40"));
+
+        service.
 
         System.out.println(a1.balance()); // 60
         System.out.println(a2.balance()); // 40
 
+        service.
     }
 }
 
